@@ -1,0 +1,369 @@
+{
+  "channels": [
+    {
+      "id": "UCqQo7ewe87aYAe7ub5UqXMw",
+      "name": "House of Highlights",
+      "category": "competitor"
+    },
+    {
+      "id": "UCWJ2lWNubArHWmf3FIHbfcQ",
+      "name": "NBA",
+      "category": "league"
+    },
+    {
+      "id": "UCDVYQ4Zhbm3S2dlz7P1GBDg",
+      "name": "NFL",
+      "category": "league"
+    },
+    {
+      "id": "UC9-OpMMVoNP5o10_Iyq7Ndw",
+      "name": "Bleacher Report",
+      "category": "competitor"
+    },
+    {
+      "id": "UCiWLfSweyRNmLpgEHekhoAg",
+      "name": "ESPN",
+      "category": "competitor"
+    },
+    {
+      "id": "UC4mLlRa_dezwvytudo9s1sw",
+      "name": "Deestroying",
+      "category": "athlete"
+    },
+    {
+      "id": "UCRijo3ddMTht_IHyNSNXpNQ",
+      "name": "Dude Perfect",
+      "category": "culture"
+    },
+    {
+      "id": "UCQIUhhcmXsu6cN6n3y9-Pww",
+      "name": "Jesser",
+      "category": "basketball"
+    },
+    {
+      "id": "UCX6OQ3DkcsbYNE6H8uQQuVA",
+      "name": "MrBeast",
+      "category": "culture"
+    },
+    {
+      "id": "UCvgfXK4nTYKudb0rFR6noLA",
+      "name": "UFC",
+      "category": "league"
+    },
+    {
+      "id": "UCdXTxWy0S-iw96JWGTsvm5A",
+      "name": "AMP",
+      "category": "culture"
+    },
+    {
+      "id": "UCoEmptob-eEGKk18c2VplJg",
+      "name": "Kai Cenat",
+      "category": "culture"
+    },
+    {
+      "id": "UCWsDFcIhY2DBi3GB5uykGXA",
+      "name": "IShowSpeed",
+      "category": "culture"
+    },
+    {
+      "id": "UCh0_oEIReJmE7g3ZYVxxthA",
+      "name": "UNINTERRUPTED",
+      "category": "competitor"
+    },
+    {
+      "id": "UCE_--R1P5-kfBzHTca0dsnw",
+      "name": "Complex",
+      "category": "competitor"
+    },
+    {
+      "id": "UC_k0qgMNIW2VmTQKjFsbXDw",
+      "name": "FlightReacts",
+      "category": "basketball"
+    },
+    {
+      "id": "UCxEUEkp5y728nY57wg8z3dw",
+      "name": "Tristan Jass",
+      "category": "basketball"
+    },
+    {
+      "id": "UC4G10tk3AHFuyMIuD3rHOBA",
+      "name": "RDCworld1",
+      "category": "culture"
+    },
+    {
+      "id": "UCHv2YjvBLu0BJsbqx5JHYrw",
+      "name": "cashnasty",
+      "category": "basketball"
+    },
+    {
+      "id": "UCu9sYmfPNydPJFqLLTdmxvA",
+      "name": "KOT4Q",
+      "category": "basketball"
+    },
+    {
+      "id": "UCenK8SmNW_vOKmDUTjbjamw",
+      "name": "Rusty Buckets",
+      "category": "basketball"
+    },
+    {
+      "id": "UCzgWsBaujdmslvDqmJY_Yrg",
+      "name": "TheProfessor",
+      "category": "basketball"
+    },
+    {
+      "id": "UC_zgOsTPdML6tol9hLYh4fQ",
+      "name": "Ballislife",
+      "category": "basketball"
+    },
+    {
+      "id": "UCmxrE11uzKD8g_dRgDDKrvg",
+      "name": "2hype",
+      "category": "basketball"
+    },
+    {
+      "id": "UCZjUnyPjFXni1jlvk8vWmJw",
+      "name": "ArttuKivel\u00e4",
+      "category": "basketball"
+    },
+    {
+      "id": "UCxcTeAKWJca6XyJ37_ZoKIQ",
+      "name": "The Pat McAfee Show",
+      "category": "media"
+    },
+    {
+      "id": "UC3A45obTvPvyaGdfeC07lyw",
+      "name": "All The Smoke",
+      "category": "media"
+    },
+    {
+      "id": "UCQoxJOkwaCgyzQtiuAIDcuw",
+      "name": "Club Shay Shay",
+      "category": "media"
+    },
+    {
+      "id": "UClrJXsuuK2SiMgtED7316bw",
+      "name": "Fire Octagon",
+      "category": "culture"
+    },
+    {
+      "id": "UCcgVECVN4OKV6DH1jLkqmcA",
+      "name": "Jake Paul",
+      "category": "culture"
+    },
+    {
+      "id": "UCblfuW_4rakIf2h6aqANefA",
+      "name": "Red Bull",
+      "category": "action"
+    },
+    {
+      "id": "UCqhnX4jA0A5paNd1v-zEysw",
+      "name": "GoPro",
+      "category": "action"
+    },
+    {
+      "id": "UC9UGYdMSKasjY0mhU1lG4lQ",
+      "name": "Nitro Circus",
+      "category": "action"
+    },
+    {
+      "id": "UCY3NEq2LYrmdoGkevo9BH5A",
+      "name": "NFL Films",
+      "category": "league"
+    },
+    {
+      "id": "UCzRWWsFjqHk1an4OnVPsl9g",
+      "name": "ESPN College Football",
+      "category": "football"
+    },
+    {
+      "id": "UCg6jOxpPC46mnBs9NsgLcvg",
+      "name": "Tom Grossi",
+      "category": "football"
+    },
+    {
+      "id": "UCEjOSbbaOfgnfRODEEMYlCw",
+      "name": "FreeDawkins",
+      "category": "basketball"
+    },
+    {
+      "id": "UCDogdKl7t7NHzQ95aEwkdMw",
+      "name": "Sidemen",
+      "category": "culture"
+    },
+    {
+      "id": "UCGmnsW623G1r-Chmo5RB4Yw",
+      "name": "KSI",
+      "category": "culture"
+    },
+    {
+      "id": "UCxOzbkk0bdVl6-tH1Fcajfg",
+      "name": "Beta Squad",
+      "category": "culture"
+    },
+    {
+      "id": "UCjtLOfx1yt1NlnFIDyAX3Ug",
+      "name": "W2S",
+      "category": "culture"
+    },
+    {
+      "id": "UCvj3hNvwrEgTRkeut7_cBAQ",
+      "name": "JiDion",
+      "category": "culture"
+    },
+    {
+      "id": "UCJ-rK_vd0Pw3J8kOjfW_m8g",
+      "name": "JustFanum",
+      "category": "culture"
+    },
+    {
+      "id": "UCpmGbhQHg0nf3Ec2OreFHoQ",
+      "name": "Agent 00",
+      "category": "basketball"
+    },
+    {
+      "id": "UCetQEJoHQtBS0SpX0JAS0hQ",
+      "name": "Slam",
+      "category": "competitor"
+    },
+    {
+      "id": "UCPHKMJbis1c0R7d7WJQ35tA",
+      "name": "Overtime",
+      "category": "competitor"
+    },
+    {
+      "id": "UCZFhj_r-MjoPCFVUo3E1ZRg",
+      "name": "Whistle",
+      "category": "competitor"
+    },
+    {
+      "id": "UCATV0XpzLCNSA28HmBUsAFA",
+      "name": "ringer",
+      "category": "media"
+    },
+    {
+      "id": "UClvow1RFSyeh5CRwRB_m5sA",
+      "name": "B/R Football",
+      "category": "soccer"
+    },
+    {
+      "id": "UCp3dgMf1OUP2XqOpyOY2bzQ",
+      "name": "Mike Korzemba",
+      "category": "basketball"
+    },
+    {
+      "id": "UCTs5PJGf9AwnA7mNV3ejNTQ",
+      "name": "ZackTTG",
+      "category": "basketball"
+    },
+    {
+      "id": "UCkSSr9X-JFXOHwV_dNJkGcA",
+      "name": "AFunkyDiabetic",
+      "category": "basketball"
+    },
+    {
+      "id": "UC8YobflSXeylcN6vg99IPAw",
+      "name": "Andy Hoops",
+      "category": "basketball"
+    },
+    {
+      "id": "UC3L9XPe0_FGfRG-CMGtBvFg",
+      "name": "JxmyHighroller",
+      "category": "basketball"
+    },
+    {
+      "id": "UC3HPbvB6f58X_7SMIp6OPYw",
+      "name": "Thinking Basketball",
+      "category": "basketball"
+    },
+    {
+      "id": "UCR8s3egas481EMmOxr5fBmg",
+      "name": "Sporting Logically",
+      "category": "basketball"
+    },
+    {
+      "id": "UCrKucnER_1PdAw7Fc-4-nrA",
+      "name": "ESPNSportsCenter",
+      "category": "media"
+    },
+    {
+      "id": "UCUJ0Qif41Vfwds2Q_k6HO2g",
+      "name": "Kristopher London",
+      "category": "basketball"
+    },
+    {
+      "id": "UC9s7CbR5jcvny6DBRe-RkDA",
+      "name": "\u0645\u0648\u0631\u064a \u0642\u064a\u0645\u0632- MoRi GaMeS",
+      "category": "basketball"
+    },
+    {
+      "id": "UCE6o3p_e4MYdGyTA1Yzbzug",
+      "name": "LSK",
+      "category": "basketball"
+    },
+    {
+      "id": "UCBNnILlexKYtJu-EGUvq_iA",
+      "name": "CboysTV",
+      "category": "football"
+    },
+    {
+      "id": "UCYuTELGi3Vz_zAAU9kNnSvg",
+      "name": "SteveWillDoIt",
+      "category": "culture"
+    },
+    {
+      "id": "UCV60-YzrBdQBKHxvgeu9sIw",
+      "name": "MDMotivator",
+      "category": "culture"
+    },
+    {
+      "id": "UCh5mLn90vUaB1PbRRx_AiaA",
+      "name": "MoreSidemen",
+      "category": "culture"
+    },
+    {
+      "id": "UC2OREBiIbDChxvmDeg30Bsg",
+      "name": "Stephen A. Smith",
+      "category": "media"
+    },
+    {
+      "id": "UCfqgnDBOHDMsu65LL2ZVi1Q",
+      "name": "FIRST TAKE",
+      "category": "media"
+    },
+    {
+      "id": "UC9QEnkVKbz2YfSfSk0JJ9vA",
+      "name": "Anthony",
+      "category": "media"
+    },
+    {
+      "id": "UCSSY2es3o-FaH72a6K9bd3Q",
+      "name": "Marshawn Lynch Beastmode Productions",
+      "category": "athlete"
+    },
+    {
+      "id": "UCvK4bOhULCpmLabd2pDMtnA",
+      "name": "Yes Theory",
+      "category": "culture"
+    },
+    {
+      "id": "UCwIWAbIeu0xI0ReKWOcw3eg",
+      "name": "Unspeakable",
+      "category": "culture"
+    },
+    {
+      "id": "UCJZam2u1G0syq3kyqrCXrNw",
+      "name": "PrestonPlayz",
+      "category": "culture"
+    },
+    {
+      "id": "UCfNWN9s_s8kRTCadk04WWJA",
+      "name": "TBJZL",
+      "category": "culture"
+    },
+    {
+      "id": "UCWZmCMB7mmKWcXJSIPRhzZw",
+      "name": "Miniminter",
+      "category": "culture"
+    }
+  ]
+}

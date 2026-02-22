@@ -3,6 +3,56 @@
 import re
 
 
+def is_event_recap(title: str, channel_category: str = "") -> bool:
+    """
+    Detect if video is an event recap (match highlights, game recaps).
+
+    These are excluded from trend analysis because they don't provide
+    packaging insights - they're just popular because the event was popular.
+
+    Returns True if this is likely an event recap.
+    """
+    title_lower = title.lower()
+
+    # Strong signals: explicit recap keywords + vs pattern
+    recap_keywords = [
+        "highlights", "extended highlights", "all goals", "match recap",
+        "full match", "game recap", "post-game", "postgame", "final score",
+        "full highlights", "match highlights", "goals and highlights"
+    ]
+
+    has_recap_keyword = any(kw in title_lower for kw in recap_keywords)
+
+    # Check for "Team vs Team" pattern with score like "(2-1)" or "2-1"
+    has_score = bool(re.search(r'\(\d+-\d+\)|\b\d+-\d+\b', title_lower))
+
+    # Check for vs pattern
+    has_vs = bool(re.search(r'\bvs\.?\b|versus|\bv\b', title_lower))
+
+    # Channel is in highlights category
+    is_highlights_channel = channel_category.lower() in ["highlights", "sports highlights"]
+
+    # Decision logic:
+    # 1. Has recap keyword + vs = definitely recap
+    if has_recap_keyword and has_vs:
+        return True
+
+    # 2. Has score in title = likely recap
+    if has_score and has_vs:
+        return True
+
+    # 3. Highlights channel + vs = likely recap
+    if is_highlights_channel and has_vs:
+        return True
+
+    # 4. Just "highlights" alone with sports themes
+    sports_terms = ["match", "game", "cup", "league", "championship", "final", "semifinal"]
+    if has_recap_keyword and any(term in title_lower for term in sports_terms):
+        return True
+
+    return False
+
+
 def analyze_title(title: str) -> list[str]:
     """
     Extract patterns from video title.
@@ -104,8 +154,9 @@ def classify_themes(title: str, description: str, tags: list[str]) -> list[str]:
             "cowboys", "college football"
         ],
         "soccer": [
-            "soccer", "football", "goal", "messi", "ronaldo", "premier league",
-            "world cup", "champions league", "futbol", "mls"
+            "soccer", "goal", "messi", "ronaldo", "premier league",
+            "world cup", "champions league", "futbol", "mls", "la liga",
+            "bundesliga", "serie a", "striker", "keeper", "penalty kick"
         ],
         "training": [
             "workout", "training", "exercise", "gym", "fitness", "drill",
@@ -141,6 +192,11 @@ def classify_themes(title: str, description: str, tags: list[str]) -> list[str]:
         "celebrity": [
             "celebrity", "famous", "star", "drake", "travis scott", "kanye",
             "kardashian", "influencer", "viral"
+        ],
+        "athlete": [
+            "athlete", "pro athlete", "professional athlete", "player",
+            "draft", "rookie", "mvp", "all-star", "pro career", "signed",
+            "team", "season", "playoffs", "championship"
         ]
     }
 

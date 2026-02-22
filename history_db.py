@@ -4,26 +4,56 @@ Stores all outperformers over time to enable pattern analysis and idea testing.
 """
 
 import json
+import shutil
 from pathlib import Path
 from datetime import datetime
 from collections import Counter
 
+from config import HISTORY_FILE as HISTORY_FILE_NAME
 
-HISTORY_FILE = Path(__file__).parent / "history.json"
+
+HISTORY_FILE = Path(__file__).parent / HISTORY_FILE_NAME
+BACKUP_FILE = Path(__file__).parent / f"{HISTORY_FILE_NAME}.bak"
 
 
 def load_history() -> list[dict]:
-    """Load historical outperformers"""
+    """Load historical outperformers, with automatic backup recovery on corruption"""
     if HISTORY_FILE.exists():
-        with open(HISTORY_FILE, 'r') as f:
-            return json.load(f)
+        try:
+            with open(HISTORY_FILE, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            print("⚠ history.json corrupted, attempting backup recovery...")
+            if restore_from_backup():
+                print("✓ Restored from backup")
+                with open(HISTORY_FILE, 'r') as f:
+                    return json.load(f)
+            else:
+                print("✗ No backup available, starting fresh")
+                return []
     return []
 
 
 def save_history(history: list[dict]):
-    """Save historical outperformers"""
+    """Save historical outperformers with backup"""
+    # Create backup of existing file before overwriting
+    if HISTORY_FILE.exists():
+        shutil.copy2(HISTORY_FILE, BACKUP_FILE)
+
     with open(HISTORY_FILE, 'w') as f:
         json.dump(history, f, indent=2, default=str)
+
+
+def restore_from_backup() -> bool:
+    """
+    Restore history.json from backup file.
+    Returns True if successful, False if no backup exists.
+    """
+    if not BACKUP_FILE.exists():
+        return False
+
+    shutil.copy2(BACKUP_FILE, HISTORY_FILE)
+    return True
 
 
 def add_outperformers(outperformers: list) -> int:

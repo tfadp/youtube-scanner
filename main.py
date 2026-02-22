@@ -37,20 +37,39 @@ from history_db import add_outperformers
 
 
 def load_channels(filepath: str = None) -> list[Channel]:
-    """Load channel list from JSON file"""
+    """Load channel list from JSON file with validation"""
     filepath = filepath or CHANNELS_FILE
 
     with open(filepath, "r") as f:
         data = json.load(f)
 
+    if "channels" not in data:
+        raise ValueError("channels.json missing 'channels' key")
+
     channels = []
-    for ch in data["channels"]:
+    for i, ch in enumerate(data["channels"]):
+        # Validate required fields
+        if "id" not in ch:
+            print(f"⚠ Skipping channel #{i}: missing 'id' field")
+            continue
+        if "name" not in ch:
+            print(f"⚠ Skipping channel #{i} ({ch['id']}): missing 'name' field")
+            continue
+        # Validate channel ID format (should start with UC)
+        if not ch["id"].startswith("UC"):
+            print(f"⚠ Skipping channel '{ch['name']}': invalid ID format (should start with 'UC')")
+            continue
+
         channels.append(Channel(
             channel_id=ch["id"],
             name=ch["name"],
             subscribers=0,  # Will be fetched from API
             category=ch.get("category", "unknown")
         ))
+
+    if not channels:
+        raise ValueError("No valid channels found in channels.json")
+
     return channels
 
 

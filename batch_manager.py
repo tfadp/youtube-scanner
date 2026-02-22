@@ -7,10 +7,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-from config import BATCH_SIZE, CHANNELS_FILE
+from config import BATCH_SIZE, CHANNELS_FILE, BATCH_STATE_FILE
 
 
-STATE_FILE = Path(__file__).parent / "batch_state.json"
+STATE_FILE = Path(__file__).parent / BATCH_STATE_FILE
 
 
 def load_batch_state() -> dict:

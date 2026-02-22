@@ -14,6 +14,8 @@ env/
 
 # Data files (generated at runtime)
 history.json
+history.json.bak
+batch_state.json
 output/
 *.log
 

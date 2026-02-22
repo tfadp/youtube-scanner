@@ -36,7 +36,11 @@ MAX_RESULTS_IN_REPORT = 25   # Top N outperformers to show
 
 # Batching (for large channel lists)
 BATCH_SIZE = 3000            # Channels per batch (fits in 10k quota)
-CHANNELS_FILE = "channels.json"  # Default channel list
+
+# File paths (relative to project root)
+CHANNELS_FILE = "channels.json"
+HISTORY_FILE = "history.json"
+BATCH_STATE_FILE = "batch_state.json"
 
 # Email settings (Resend)
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"

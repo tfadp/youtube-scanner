@@ -49,6 +49,7 @@ class Outperformer:
     classification: str             # "trend_jacker", "authority_builder", or "standard"
     title_patterns: list = field(default_factory=list)
     themes: list = field(default_factory=list)
+    is_event_recap: bool = False    # True if this is just highlights/recap (exclude from insights)
 
 
 def get_video_age_hours(published_at: datetime) -> float:
@@ -119,7 +120,7 @@ def find_outperformers(
     Returns list sorted by velocity score (highest first)
     """
     # Import here to avoid circular imports
-    from analyzer import analyze_title, classify_themes
+    from analyzer import analyze_title, classify_themes, is_event_recap
 
     outperformers = []
     total_channels = len(channels)
@@ -205,6 +206,9 @@ def find_outperformers(
                     video.tags
                 )
 
+                # Check if this is an event recap (match highlights, etc.)
+                event_recap = is_event_recap(video.title, channel.category)
+
                 outperformer = Outperformer(
                     video=video,
                     channel=channel,
@@ -213,7 +217,8 @@ def find_outperformers(
                     age_hours=age_hours,
                     classification=classification,
                     title_patterns=patterns,
-                    themes=themes
+                    themes=themes,
+                    is_event_recap=event_recap
                 )
                 outperformers.append(outperformer)
 
@@ -224,8 +229,9 @@ def find_outperformers(
                     "standard": "⬆️"
                 }
                 emoji = class_emoji.get(classification, "⬆️")
+                recap_flag = " [RECAP]" if event_recap else ""
 
-                print(f"    ✓ Found: {video.title[:45]}... ({ratio:.1f}x, {age_hours:.0f}h) {emoji}")
+                print(f"    ✓ Found: {video.title[:45]}... ({ratio:.1f}x, {age_hours:.0f}h) {emoji}{recap_flag}")
 
     # Sort by velocity score descending (normalizes for time)
     outperformers.sort(key=lambda x: x.velocity_score, reverse=True)

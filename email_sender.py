@@ -69,17 +69,24 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
     Format outperformers into email subject, plain text body, and HTML body.
     Mobile-optimized with inline styles.
 
+    Event recaps (match highlights, game recaps) are separated from the main
+    analysis since they don't provide packaging insights.
+
     Returns (subject, text_body, html_body)
     """
     now = datetime.now().strftime("%Y-%m-%d")
 
-    # Count by classification
-    trend_jackers = [op for op in outperformers if op.classification == "trend_jacker"]
-    authority_builders = [op for op in outperformers if op.classification == "authority_builder"]
-    standard = [op for op in outperformers if op.classification == "standard"]
+    # Separate event recaps from actionable insights
+    recaps = [op for op in outperformers if getattr(op, 'is_event_recap', False)]
+    insights = [op for op in outperformers if not getattr(op, 'is_event_recap', False)]
 
-    # Subject line
-    total = len(outperformers)
+    # Count by classification (only from insights, not recaps)
+    trend_jackers = [op for op in insights if op.classification == "trend_jacker"]
+    authority_builders = [op for op in insights if op.classification == "authority_builder"]
+    standard = [op for op in insights if op.classification == "standard"]
+
+    # Subject line (based on insights, not recaps)
+    total = len(insights)
     if total == 0:
         subject = f"YouTube Scanner [{now}]: No outperformers found"
     else:
@@ -111,18 +118,22 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
                             <p style="margin: 0 0 20px 0; font-size: 16px; color: #666;">{datetime.now().strftime('%B %d, %Y')} {f'• {batch_info}' if batch_info else ''}</p>
 """)
 
-    if not outperformers:
-        html_parts.append("""
+    if not insights:
+        recap_note = f" ({len(recaps)} event recaps filtered)" if recaps else ""
+        html_parts.append(f"""
                             <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #f8f9fa; border-radius: 12px;">
                                 <tr>
                                     <td style="padding: 24px 20px; text-align: center;">
-                                        <p style="margin: 0 0 8px 0; font-size: 18px; color: #333;">No outperformers found</p>
+                                        <p style="margin: 0 0 8px 0; font-size: 18px; color: #333;">No outperformers found{recap_note}</p>
                                         <p style="margin: 0; font-size: 15px; color: #666;">This is normal - outperformers are rare signals worth watching.</p>
                                     </td>
                                 </tr>
                             </table>
 """)
     else:
+        # Note about filtered recaps
+        recap_note = f' <span style="font-size: 13px; color: rgba(255,255,255,0.7);">({len(recaps)} recaps filtered)</span>' if recaps else ""
+
         # Summary box
         html_parts.append(f"""
                             <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; margin-bottom: 24px;">
@@ -130,7 +141,7 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
                                     <td style="padding: 20px;">
                                         <p style="margin: 0 0 4px 0; font-size: 14px; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px;">Found</p>
                                         <p style="margin: 0; font-size: 36px; font-weight: 700; color: #ffffff;">{total}</p>
-                                        <p style="margin: 4px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">outperforming videos</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 16px; color: rgba(255,255,255,0.9);">outperforming videos{recap_note}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -218,13 +229,15 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
         text_lines.append(f"Batch: {batch_info}")
     text_lines.append("")
 
-    if not outperformers:
-        text_lines.append("No outperforming videos found in this batch.")
+    if not insights:
+        recap_note = f" ({len(recaps)} event recaps filtered)" if recaps else ""
+        text_lines.append(f"No outperforming videos found in this batch.{recap_note}")
     else:
-        text_lines.append(f"Found {total} outperforming videos")
+        recap_note = f" ({len(recaps)} event recaps filtered)" if recaps else ""
+        text_lines.append(f"Found {total} outperforming videos{recap_note}")
         text_lines.append("")
 
-        for i, op in enumerate(outperformers[:25], 1):
+        for i, op in enumerate(insights[:25], 1):
             emoji = {"trend_jacker": "🔥", "authority_builder": "👑", "standard": "⬆️"}.get(op.classification, "")
             text_lines.append(f"{emoji} #{i} — {op.video.title}")
             text_lines.append(f"   Channel: {op.channel.name}")

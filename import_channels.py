@@ -109,7 +109,8 @@ def main():
     csv_files = [
         csv_dir / "36ce4587-e824-4788-869f-867783333313.csv",
         csv_dir / "816762ec-52aa-44ac-8c6c-3b0987b2e758.csv",
-        csv_dir / "9b221abe-1882-4e67-870e-c9bfa15db1dc.csv"
+        csv_dir / "9b221abe-1882-4e67-870e-c9bfa15db1dc.csv",
+        csv_dir / "1d8cc280-d398-40f9-979a-6f6e610a3b7b.csv"
     ]
 
     all_channels = {}

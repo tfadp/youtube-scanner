@@ -53,6 +53,70 @@ def is_event_recap(title: str, channel_category: str = "") -> bool:
     return False
 
 
+def is_live_stream(title: str) -> bool:
+    """
+    Detect if video is a live stream or watch party.
+
+    Live streams ride the event in real-time and don't provide
+    replicable packaging insights.
+
+    Returns True if this is likely a live stream.
+    """
+    title_lower = title.lower()
+
+    live_keywords = [
+        "live stream", "livestream", "live reaction",
+        "watch party", "watch along", "play by play",
+        "live commentary", "live now", "streaming live",
+        "live watch", "going live"
+    ]
+
+    return any(kw in title_lower for kw in live_keywords)
+
+
+def is_political_news(title: str, channel_category: str = "") -> bool:
+    """
+    Detect if video is political news/commentary about non-creator figures.
+
+    Political news rides news cycles and doesn't provide replicable
+    content strategy insights for sports/entertainment creators.
+
+    Returns True if this is likely political news noise.
+    """
+    title_lower = title.lower()
+
+    # Political figures and news topics (not athletes/creators)
+    political_figures = [
+        "trump", "biden", "obama", "epstein", "bondi",
+        "congress", "senator", "governor", "president",
+        "democrat", "republican", "leftist", "conservative",
+        "maga", "woke"
+    ]
+
+    # Political drama keywords
+    drama_keywords = [
+        "meltdown", "destroyed", "exposed", "scandal",
+        "loses mind", "lost her mind", "lost his mind",
+        "goes crazy", "freaks out", "backfire"
+    ]
+
+    has_political_figure = any(fig in title_lower for fig in political_figures)
+    has_drama_keyword = any(kw in title_lower for kw in drama_keywords)
+
+    # Culture channels with political figures = likely political news
+    is_culture_channel = channel_category.lower() in ["culture", "news", "politics"]
+
+    # If it mentions political figures + drama keywords = political news
+    if has_political_figure and has_drama_keyword:
+        return True
+
+    # Culture channel + political figure = likely political news
+    if is_culture_channel and has_political_figure:
+        return True
+
+    return False
+
+
 def analyze_title(title: str) -> list[str]:
     """
     Extract patterns from video title.

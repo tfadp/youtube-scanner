@@ -2,7 +2,10 @@
 
 import pytest
 from youtube_client import parse_duration
-from analyzer import analyze_title, classify_themes, is_event_recap
+from analyzer import (
+    analyze_title, classify_themes,
+    is_event_recap, is_live_stream, is_political_news
+)
 
 
 class TestParseDuration:
@@ -144,6 +147,67 @@ class TestIsEventRecap:
     def test_no_patterns(self):
         # Random title
         assert is_event_recap("How I Became a Pro Gamer") is False
+
+
+class TestIsLiveStream:
+    """Tests for live stream detection"""
+
+    def test_live_stream_keyword(self):
+        assert is_live_stream("USA vs Canada LIVE Stream Reaction") is True
+
+    def test_watch_party(self):
+        assert is_live_stream("Super Bowl Watch Party with Friends") is True
+
+    def test_play_by_play(self):
+        assert is_live_stream("NBA Finals Play by Play Commentary") is True
+
+    def test_livestream_one_word(self):
+        assert is_live_stream("Livestream: Championship Game Tonight") is True
+
+    def test_live_reaction(self):
+        assert is_live_stream("LIVE Reaction to the Draft Picks") is True
+
+    def test_regular_reaction_not_live(self):
+        # Regular reaction video (not live) should NOT be flagged
+        assert is_live_stream("My Reaction to the Championship") is False
+
+    def test_analysis_not_live(self):
+        assert is_live_stream("Breaking Down the Game") is False
+
+    def test_no_live_keywords(self):
+        assert is_live_stream("Top 10 Best Plays of the Week") is False
+
+
+class TestIsPoliticalNews:
+    """Tests for political news detection"""
+
+    def test_epstein_on_culture_channel(self):
+        # Tim Dillon Show Clips is categorized as "culture"
+        assert is_political_news("Why The Elites Are Quiet About Epstein", channel_category="culture") is True
+
+    def test_political_figure_meltdown(self):
+        assert is_political_news("Winter Olympics Leftist Has HILARIOUS MELTDOWN") is True
+
+    def test_trump_scandal(self):
+        assert is_political_news("Trump EXPOSED in New Scandal") is True
+
+    def test_culture_channel_with_political(self):
+        assert is_political_news("Pam Bondi Has Lost Her Mind", channel_category="culture") is True
+
+    def test_sports_analysis_not_political(self):
+        # Sports analysis should NOT be flagged
+        assert is_political_news("Why Hockey Outperforms Every Winter Sport") is False
+
+    def test_creator_drama_not_political(self):
+        # Creator drama is NOT political news
+        assert is_political_news("MrBeast vs PewDiePie Drama Explained") is False
+
+    def test_athlete_news_not_political(self):
+        # Athlete news is NOT political
+        assert is_political_news("LeBron James Exposed His Workout Routine") is False
+
+    def test_no_political_keywords(self):
+        assert is_political_news("I Designed Uppestcase Letters") is False
 
 
 if __name__ == "__main__":

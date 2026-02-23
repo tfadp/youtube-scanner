@@ -48,3 +48,22 @@ When reviewing top-performing videos, we discovered that match highlights/recaps
 These are now flagged with `is_event_recap=True` and filtered from email reports (shown as "X recaps filtered").
 
 **Prevention**: When analyzing performance data, always ask: "Is this success replicable, or just riding an external event?"
+
+---
+
+## 2026-02-23: Expanded Noise Filters
+
+**Lesson: Event recaps aren't the only noise.**
+
+After reviewing another week of outperformers, we identified two more categories that don't provide actionable insights:
+
+1. **Live streams/watch parties** - "USA vs Canada LIVE Stream Reaction" rides the event in real-time
+2. **Political news** - "Why The Elites Are Quiet About Epstein" rides news cycles, not content strategy
+
+**Solution**: Added `is_live_stream()` and `is_political_news()` functions. Renamed `is_event_recap` field to `is_noise` with a `noise_type` field for debugging.
+
+**Detection patterns**:
+- Live streams: "live stream", "watch party", "play by play"
+- Political: political figures + drama keywords, OR culture channels + political figures
+
+**Prevention**: When filtering data, regularly review what's getting through and ask: "Would I actually learn something actionable from this?"

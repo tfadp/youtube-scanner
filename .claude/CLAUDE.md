@@ -44,3 +44,6 @@ You become a Strict Auditor and run a checklist:
 - error handling and edge cases
 - tests and verification commands
 - no "lazy logic" shortcuts
+
+## 7) Non-Negotiables
+- All code reviews must follow the checklist in .claude/REVIEW_RULES.md

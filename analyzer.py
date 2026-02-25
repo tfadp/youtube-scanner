@@ -117,6 +117,40 @@ def is_political_news(title: str, channel_category: str = "") -> bool:
     return False
 
 
+def is_not_relevant(channel_category: str, title_patterns: list[str], themes: list[str]) -> bool:
+    """
+    Check if a non-sports video lacks transferable formats.
+
+    Sports channels always pass. Non-sports channels need at least
+    one transferable pattern OR one transferable theme to stay in the report.
+    Without either, the video is noise — it can't be ported to a sports account.
+    """
+    from config import SPORTS_CATEGORIES
+
+    # Sports categories are always relevant
+    if channel_category.lower() in SPORTS_CATEGORIES:
+        return False
+
+    # Formats that work across niches (the "how" is portable)
+    transferable_patterns = {
+        "first_person_action", "challenge_bet", "listicle", "versus",
+        "reaction", "vlog_bts", "expose_truth", "question", "interview"
+    }
+
+    # Themes that overlap with sports audience interests
+    transferable_themes = {
+        "competition", "athlete", "training", "lifestyle",
+        "reaction", "money", "celebrity", "drama",
+        "basketball", "football", "soccer", "highlights"
+    }
+
+    has_transferable_pattern = bool(set(title_patterns) & transferable_patterns)
+    has_transferable_theme = bool(set(themes) & transferable_themes)
+
+    # Not relevant if it has neither
+    return not (has_transferable_pattern or has_transferable_theme)
+
+
 def analyze_title(title: str) -> list[str]:
     """
     Extract patterns from video title.

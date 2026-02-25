@@ -64,13 +64,16 @@ def truncate_description(desc: str, max_length: int = 120) -> str:
     return desc[:max_length].rsplit(' ', 1)[0] + "..."
 
 
-def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str, str, str]:
+def format_email_report(outperformers: list, batch_info: str = "", mid_performers: list = None) -> tuple[str, str, str]:
     """
     Format outperformers into email subject, plain text body, and HTML body.
     Mobile-optimized with inline styles.
 
     Noise (recaps, live streams, political news) is separated from the main
     analysis since it doesn't provide packaging insights.
+
+    When mid_performers is provided, shows them as a fallback section
+    (used when no outperformer insights remain after noise filtering).
 
     Returns (subject, text_body, html_body)
     """
@@ -200,6 +203,22 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
             for op in standard[:25]:
                 html_parts.append(format_video_card_html(op, "#4CAF50"))
 
+    # Mid-performer fallback section (shown when no outperformer insights)
+    if mid_performers:
+        html_parts.append(f"""
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background: linear-gradient(135deg, #4a6fa5 0%, #536b8a 100%); border-radius: 12px; margin: 24px 0 16px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 4px 0; font-size: 14px; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px;">Fallback</p>
+                                        <p style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">No outperformers this batch</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 15px; color: rgba(255,255,255,0.85);">Here are the strongest sports mid-performers (0.5x+)</p>
+                                    </td>
+                                </tr>
+                            </table>
+""")
+        for op in mid_performers[:10]:
+            html_parts.append(format_video_card_html(op, "#4a6fa5"))
+
     html_parts.append("""
                             <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 32px; border-top: 1px solid #eee;">
                                 <tr>
@@ -244,6 +263,21 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
             text_lines.append(f"   Views: {op.video.views:,} | Ratio: {op.ratio:.1f}x")
             if op.summary:
                 text_lines.append(f"   Summary: {op.summary}")
+            text_lines.append(f"   Watch: https://youtube.com/watch?v={op.video.video_id}")
+            text_lines.append("")
+
+    # Mid-performer fallback for plain text
+    if mid_performers:
+        text_lines.append("")
+        text_lines.append("-" * 50)
+        text_lines.append("SPORTS MID-PERFORMERS (0.5x+ fallback)")
+        text_lines.append("-" * 50)
+        text_lines.append("No outperformers this batch. Best sports mid-performers:")
+        text_lines.append("")
+        for i, op in enumerate(mid_performers[:10], 1):
+            text_lines.append(f"📊 #{i} — {op.video.title}")
+            text_lines.append(f"   Channel: {op.channel.name} ({op.channel.category})")
+            text_lines.append(f"   Views: {op.video.views:,} | Ratio: {op.ratio:.1f}x")
             text_lines.append(f"   Watch: https://youtube.com/watch?v={op.video.video_id}")
             text_lines.append("")
 

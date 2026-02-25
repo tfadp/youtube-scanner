@@ -41,6 +41,27 @@
 - [ ] Emerging topic detection
 - [ ] Weekly digest with trend comparisons
 
+## Active Tasks
+
+- [ ] Add retry logic to `video_summarizer.py` for Anthropic API 500 errors (hit transient failure on 2/25)
+- [ ] Deploy all uncommitted changes to server (mid-performer fallback, not-relevant filter, retry logic)
+
+## Completed (2026-02-25)
+
+- [x] Deployed AI summary files to server via SCP
+- [x] Mid-performer fallback — sports videos 0.5x-0.75x shown when no outperformers found
+- [x] `is_not_relevant()` filter — non-sports videos without transferable patterns/themes marked as noise
+- [x] `MIN_RATIO_MID = 0.5` added to config.py
+
+## Completed (2026-02-24)
+
+- [x] Deleted SOUL.md, migrated to lean three-layer CLAUDE.md system
+- [x] AI video summaries — Claude Haiku generates 1-3 sentence summaries per outperformer
+- [x] Channel "about" extraction — captures YouTuber context from existing API call (zero extra quota)
+- [x] Summaries shown in email (HTML + plain text), console, and saved reports
+- [x] Summaries stored in history.json for future analysis
+- [x] New module: `video_summarizer.py`
+
 ## Backlog (Future Features)
 
 - Thumbnail analysis (Claude vision on top performer thumbnails)

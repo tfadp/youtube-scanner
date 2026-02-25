@@ -12,6 +12,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 # Scanner thresholds
 MIN_RATIO = 1.0              # Views must exceed subscriber count (default)
 MIN_RATIO_SPORTS = 0.75      # Lower bar for sports channels (large sub counts rarely hit 1x)
+MIN_RATIO_MID = 0.5          # Floor for mid-performer fallback (shown when no outperformers found)
 MIN_VIEWS = 10000            # Minimum views to consider
 
 # Sports categories (use lower ratio threshold)

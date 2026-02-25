@@ -67,3 +67,34 @@ After reviewing another week of outperformers, we identified two more categories
 - Political: political figures + drama keywords, OR culture channels + political figures
 
 **Prevention**: When filtering data, regularly review what's getting through and ask: "Would I actually learn something actionable from this?"
+
+---
+
+## 2026-02-24: AI Video Summaries
+
+**Lesson: Check what the API already returns before adding new calls.**
+
+When adding YouTuber background context, we discovered the YouTube API's `get_channel_info()` call already requested `part="snippet,statistics"` — and `snippet` includes the channel description ("about" text). We were paying the quota cost and throwing away the data. One-line fix to extract it, zero additional API cost.
+
+**Lesson: Batch AI calls for cost efficiency.**
+
+Instead of calling Claude once per video (20-100 calls), we batch all videos into a single prompt with numbered `[1] ... [2] ...` format. Cost: ~$0.004 per batch with Haiku vs ~$0.40-2.00 if called individually with Sonnet.
+
+**Prevention**: Before adding a new API call, always check: "Is this data already being fetched somewhere and just not used?"
+
+---
+
+## 2026-02-25: Deployment Gap & Transient API Errors
+
+**Lesson: SCP failures are silent killers.**
+
+We built and tested the AI summary feature locally, committed and pushed to GitHub, but the SCP deploy to the server failed with "Permission denied". The next day's email had no summaries — the server was still running old code. We didn't catch this until the user reported it.
+
+**Lesson: Transient API errors need retry logic.**
+
+The Anthropic API returned a 500 Internal Server Error during summary generation. Our `try/except` caught it gracefully (email still sent, just without summaries), but we should add retry with exponential backoff — same pattern already used in `youtube_client.py`.
+
+**Prevention**:
+1. After any deploy attempt, always verify: "Did the files actually land?" Check with `ssh ... ls -la` or similar
+2. Any external API call should have retry logic for transient 5xx errors
+3. The `video_summarizer.py` needs the same `retry_on_error` pattern as `youtube_client.py`

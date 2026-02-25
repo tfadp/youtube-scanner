@@ -312,8 +312,10 @@ def main():
 
     # Find outperformers
     print("\nScanning for outperformers...")
-    outperformers = find_outperformers(channels, yt)
+    outperformers, mid_performers = find_outperformers(channels, yt)
     print(f"\n✓ Found {len(outperformers)} videos exceeding subscriber count")
+    if mid_performers:
+        print(f"📊 Found {len(mid_performers)} sports mid-performers (0.5x-0.75x fallback)")
 
     # Save to history database
     if outperformers:
@@ -347,7 +349,12 @@ def main():
     # Send email report
     if EMAIL_ENABLED and EMAIL_TO and RESEND_API_KEY:
         print("\nSending email report...")
-        subject, body, html_body = format_email_report(outperformers, batch_info)
+        # Use mid-performer fallback if no actionable insights after noise filtering
+        insights = [op for op in outperformers if not op.is_noise]
+        fallback = mid_performers if len(insights) == 0 and mid_performers else None
+        if fallback:
+            print("  ↳ No outperformer insights — including mid-performer fallback")
+        subject, body, html_body = format_email_report(outperformers, batch_info, mid_performers=fallback)
         success = send_report_email(
             to_email=EMAIL_TO,
             subject=subject,

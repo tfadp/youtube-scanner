@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from config import (
-    MIN_RATIO, MIN_RATIO_SPORTS, MIN_VIEWS, VIDEOS_PER_CHANNEL,
+    MIN_RATIO, MIN_RATIO_SPORTS, MIN_RATIO_MID, MIN_VIEWS, VIDEOS_PER_CHANNEL,
     MIN_VIDEO_AGE_HOURS, MAX_VIDEO_AGE_HOURS,
     SIGNAL_WINDOW_HOURS, VELOCITY_TREND_JACKER, VELOCITY_AUTHORITY,
     MIN_VIDEO_DURATION, SPORTS_CATEGORIES
@@ -108,7 +108,7 @@ def classify_outperformer(ratio: float, velocity_score: float, age_hours: float)
 def find_outperformers(
     channels: list[Channel],
     youtube_client: "YouTubeClient"
-) -> list[Outperformer]:
+) -> tuple[list[Outperformer], list[Outperformer]]:
     """
     Main scanner function with velocity scoring.
 
@@ -120,15 +120,17 @@ def find_outperformers(
     5. Classify as trend_jacker, authority_builder, or standard
     6. Analyze title patterns and themes
 
-    Returns list sorted by velocity score (highest first)
+    Returns (outperformers, mid_performers) both sorted by velocity score.
+    Mid performers = sports videos between 0.5x and 0.75x ratio (fallback for empty reports).
     """
     # Import here to avoid circular imports
     from analyzer import (
         analyze_title, classify_themes,
-        is_event_recap, is_live_stream, is_political_news
+        is_event_recap, is_live_stream, is_political_news, is_not_relevant
     )
 
     outperformers = []
+    mid_performers = []
     total_channels = len(channels)
 
     for i, channel in enumerate(channels, 1):
@@ -220,6 +222,8 @@ def find_outperformers(
                     noise_type = "live_stream"
                 elif is_political_news(video.title, channel.category):
                     noise_type = "political_news"
+                elif is_not_relevant(channel.category, patterns, themes):
+                    noise_type = "not_relevant"
 
                 outperformer = Outperformer(
                     video=video,
@@ -246,7 +250,38 @@ def find_outperformers(
 
                 print(f"    ✓ Found: {video.title[:45]}... ({ratio:.1f}x, {age_hours:.0f}h) {emoji}{noise_flag}")
 
+            # Mid performer fallback: sports videos between 0.5x and 0.75x
+            elif channel.category.lower() in SPORTS_CATEGORIES and ratio >= MIN_RATIO_MID:
+                velocity = calculate_velocity_score(ratio, age_hours)
+                video = Video(
+                    video_id=video_data["video_id"],
+                    channel_id=channel.channel_id,
+                    channel_name=channel.name,
+                    title=video_data["title"],
+                    description=video_data["description"],
+                    views=video_data["views"],
+                    likes=video_data["likes"],
+                    comments=video_data["comments"],
+                    published_at=video_data["published_at"],
+                    thumbnail_url=video_data["thumbnail_url"],
+                    duration_seconds=video_data.get("duration_seconds", 0),
+                    tags=video_data.get("tags", [])
+                )
+                patterns = analyze_title(video.title)
+                themes = classify_themes(video.title, video.description, video.tags)
+                mid_performers.append(Outperformer(
+                    video=video,
+                    channel=channel,
+                    ratio=ratio,
+                    velocity_score=velocity,
+                    age_hours=age_hours,
+                    classification="standard",
+                    title_patterns=patterns,
+                    themes=themes
+                ))
+
     # Sort by velocity score descending (normalizes for time)
     outperformers.sort(key=lambda x: x.velocity_score, reverse=True)
+    mid_performers.sort(key=lambda x: x.ratio, reverse=True)
 
-    return outperformers
+    return outperformers, mid_performers

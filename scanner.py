@@ -37,6 +37,7 @@ class Channel:
     name: str
     subscribers: int
     category: str  # competitor, athlete, culture, emerging, media
+    about: str = ""  # Channel description from YouTube "About" page
 
 
 @dataclass
@@ -51,6 +52,7 @@ class Outperformer:
     themes: list = field(default_factory=list)
     is_noise: bool = False          # True if this should be excluded from insights
     noise_type: str = ""            # Why excluded: "event_recap", "live_stream", "political_news"
+    summary: str = ""               # AI-generated summary of video content + channel context
 
 
 def get_video_age_hours(published_at: datetime) -> float:

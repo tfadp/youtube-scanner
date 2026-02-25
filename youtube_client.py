@@ -105,7 +105,8 @@ class YouTubeClient:
         return {
             "channel_id": channel_id,
             "name": channel["snippet"]["title"],
-            "subscribers": int(channel["statistics"].get("subscriberCount", 0))
+            "subscribers": int(channel["statistics"].get("subscriberCount", 0)),
+            "about": channel["snippet"].get("description", "")
         }
 
     @retry_on_error

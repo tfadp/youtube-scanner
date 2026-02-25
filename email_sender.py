@@ -242,6 +242,8 @@ def format_email_report(outperformers: list, batch_info: str = "") -> tuple[str,
             text_lines.append(f"{emoji} #{i} — {op.video.title}")
             text_lines.append(f"   Channel: {op.channel.name}")
             text_lines.append(f"   Views: {op.video.views:,} | Ratio: {op.ratio:.1f}x")
+            if op.summary:
+                text_lines.append(f"   Summary: {op.summary}")
             text_lines.append(f"   Watch: https://youtube.com/watch?v={op.video.video_id}")
             text_lines.append("")
 
@@ -260,9 +262,12 @@ def format_video_card_html(op, border_color: str) -> str:
     else:
         age_str = f"{op.age_hours/24:.1f}d ago"
 
-    # Get description snippet
-    desc_snippet = truncate_description(op.video.description)
-    desc_html = f"""<p style="margin: 12px 0 0 0; font-size: 14px; color: #555; font-style: italic; background: #f8f9fa; padding: 10px; border-radius: 6px;">"{desc_snippet}"</p>""" if desc_snippet else ""
+    # Show AI summary if available, otherwise fall back to description snippet
+    if op.summary:
+        desc_html = f"""<p style="margin: 12px 0 0 0; font-size: 14px; color: #333; background: #f0f7ff; padding: 10px; border-radius: 6px; border-left: 3px solid #1a73e8;">{op.summary}</p>"""
+    else:
+        desc_snippet = truncate_description(op.video.description)
+        desc_html = f"""<p style="margin: 12px 0 0 0; font-size: 14px; color: #555; font-style: italic; background: #f8f9fa; padding: 10px; border-radius: 6px;">"{desc_snippet}"</p>""" if desc_snippet else ""
 
     # Themes as tags
     themes_html = ""

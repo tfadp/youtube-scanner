@@ -25,6 +25,7 @@ from youtube_client import YouTubeClient
 from scanner import find_outperformers, Channel
 from analyzer import get_pattern_summary
 from idea_generator import generate_ideas
+from video_summarizer import generate_summaries
 from batch_manager import (
     get_batch_channels,
     advance_batch,
@@ -81,6 +82,7 @@ def fetch_subscriber_counts(channels: list[Channel], yt: YouTubeClient) -> list[
         if info:
             channel.subscribers = info["subscribers"]
             channel.name = info["name"]  # Use official name from API
+            channel.about = info.get("about", "")
             updated.append(channel)
         else:
             print(f"  ⚠ Could not fetch info for {channel.name}")
@@ -126,6 +128,8 @@ def print_report(outperformers: list, ideas: str = None):
             print(f"    Ratio: {op.ratio:.1f}x | Velocity: {op.velocity_score:.2f}/day | Age: {format_age(op.age_hours)}")
             print(f"    Themes: {', '.join(op.themes) if op.themes else 'none'}")
             print(f"    Patterns: {', '.join(op.title_patterns) if op.title_patterns else 'none'}")
+            if op.summary:
+                print(f"    Summary: {op.summary}")
 
     if authority_builders:
         print("\n" + "-" * 60)
@@ -138,6 +142,8 @@ def print_report(outperformers: list, ideas: str = None):
             print(f"    Ratio: {op.ratio:.1f}x | Velocity: {op.velocity_score:.2f}/day | Age: {format_age(op.age_hours)}")
             print(f"    Themes: {', '.join(op.themes) if op.themes else 'none'}")
             print(f"    Patterns: {', '.join(op.title_patterns) if op.title_patterns else 'none'}")
+            if op.summary:
+                print(f"    Summary: {op.summary}")
 
     if standard:
         print("\n" + "-" * 60)
@@ -150,6 +156,8 @@ def print_report(outperformers: list, ideas: str = None):
             print(f"    Ratio: {op.ratio:.1f}x | Velocity: {op.velocity_score:.2f}/day | Age: {format_age(op.age_hours)}")
             print(f"    Themes: {', '.join(op.themes) if op.themes else 'none'}")
             print(f"    Patterns: {', '.join(op.title_patterns) if op.title_patterns else 'none'}")
+            if op.summary:
+                print(f"    Summary: {op.summary}")
 
     # Pattern summary
     summary = get_pattern_summary(outperformers)
@@ -223,6 +231,8 @@ def save_report(outperformers: list, ideas: str = None, batch_info: str = "", ou
             f.write(f"    URL: https://youtube.com/watch?v={op.video.video_id}\n")
             f.write(f"    Themes: {', '.join(op.themes) if op.themes else 'none'}\n")
             f.write(f"    Patterns: {', '.join(op.title_patterns) if op.title_patterns else 'none'}\n")
+            if op.summary:
+                f.write(f"    Summary: {op.summary}\n")
             f.write("\n")
 
         if ideas:
@@ -310,6 +320,15 @@ def main():
         new_count = add_outperformers(outperformers)
         if new_count > 0:
             print(f"📚 Added {new_count} new videos to history database")
+
+    # Generate video summaries (requires Anthropic key)
+    if ANTHROPIC_API_KEY and len(outperformers) > 0:
+        print("\nGenerating video summaries with Claude...")
+        try:
+            generate_summaries(outperformers[:MAX_RESULTS_IN_REPORT], ANTHROPIC_API_KEY)
+            print("✓ Summaries generated")
+        except Exception as e:
+            print(f"⚠ Could not generate summaries: {e}")
 
     # Generate ideas (optional - requires Anthropic key)
     ideas = None

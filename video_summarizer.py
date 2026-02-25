@@ -1,7 +1,13 @@
 """AI-powered video summarization using Claude API"""
 
 import re
+import time
 import anthropic
+
+
+# Retry configuration
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 2
 
 
 def generate_summaries(outperformers: list, api_key: str) -> list:
@@ -10,6 +16,7 @@ def generate_summaries(outperformers: list, api_key: str) -> list:
     Includes brief context about the YouTuber.
 
     Batches all videos into a single Claude call for cost efficiency.
+    Retries on transient API errors (500, 529) with exponential backoff.
     Returns the same list with .summary populated on each outperformer.
     """
     if not outperformers:
@@ -18,14 +25,26 @@ def generate_summaries(outperformers: list, api_key: str) -> list:
     client = anthropic.Anthropic(api_key=api_key)
     prompt = _build_summary_prompt(outperformers)
 
-    message = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=4000,
-        messages=[{"role": "user", "content": prompt}]
-    )
+    last_error = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            message = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=4000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            _parse_and_attach_summaries(message.content[0].text, outperformers)
+            return outperformers
+        except anthropic.APIStatusError as e:
+            last_error = e
+            if e.status_code in (500, 502, 503, 529):
+                delay = RETRY_DELAY_SECONDS * (2 ** attempt)
+                print(f"  Anthropic API error ({e.status_code}), retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
 
-    _parse_and_attach_summaries(message.content[0].text, outperformers)
-
+    print(f"  Anthropic API failed after {MAX_RETRIES} retries: {last_error}")
     return outperformers
 
 

@@ -43,10 +43,17 @@
 
 ## Active Tasks
 
-- [ ] Add retry logic to `video_summarizer.py` for Anthropic API 500 errors (hit transient failure on 2/25)
-- [ ] Deploy all uncommitted changes to server (mid-performer fallback, not-relevant filter, retry logic)
+(none)
+
+## Completed (2026-02-27)
+
+- [x] Fixed deploy path mismatch: files were SCP'd to `/root/youtube-scanner/` but cron runs from `/opt/youtube-scanner/`
+- [x] Verified server has: video_summarizer.py, noise filters, retry logic, anthropic package
 
 ## Completed (2026-02-25)
+
+- [x] Add retry logic to `video_summarizer.py` for Anthropic API 500 errors
+- [x] Deploy all uncommitted changes to server (mid-performer fallback, not-relevant filter, retry logic)
 
 - [x] Deployed AI summary files to server via SCP
 - [x] Mid-performer fallback — sports videos 0.5x-0.75x shown when no outperformers found

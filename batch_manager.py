@@ -10,7 +10,7 @@ from datetime import datetime
 from config import BATCH_SIZE, CHANNELS_FILE, BATCH_STATE_FILE
 
 
-STATE_FILE = Path(__file__).parent / BATCH_STATE_FILE
+STATE_FILE = BATCH_STATE_FILE
 
 
 def load_batch_state() -> dict:
@@ -60,9 +60,8 @@ def advance_batch():
     state = load_batch_state()
 
     # Load channels to get total count
-    channels_file = Path(__file__).parent / CHANNELS_FILE
-    if channels_file.exists():
-        with open(channels_file, 'r') as f:
+    if CHANNELS_FILE.exists():
+        with open(CHANNELS_FILE, 'r') as f:
             data = json.load(f)
             total = len(data.get("channels", []))
             total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE

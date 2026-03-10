@@ -30,3 +30,4 @@ output/
 .pytest_cache/
 .coverage
 htmlcov/
+history.db

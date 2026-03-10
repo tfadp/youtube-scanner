@@ -114,6 +114,36 @@ def is_political_news(title: str, channel_category: str = "") -> bool:
     if is_culture_channel and has_political_figure:
         return True
 
+    # Geopolitical/war topics from culture channels
+    geopolitical_keywords = [
+        "war ", "military", "air strikes", "airstrikes", "missile",
+        "bombing", "bombed", "invasion", "troops", "nuclear deal",
+        "ceasefire", "middle east", "foreign policy", "sanctions"
+    ]
+    has_geopolitical = any(kw in title_lower for kw in geopolitical_keywords)
+    if is_culture_channel and has_geopolitical:
+        return True
+
+    return False
+
+
+def is_soccer_content(channel_category: str, themes: list[str]) -> bool:
+    """
+    Detect soccer/Premier League content.
+
+    British football and Premier League content isn't relevant to the
+    target audience (US sports/entertainment creators). Filter it all.
+
+    Returns True if this is soccer content.
+    """
+    # Any channel categorized as soccer
+    if channel_category.lower() == "soccer":
+        return True
+
+    # Non-soccer channels that are primarily about soccer themes
+    if "soccer" in themes:
+        return True
+
     return False
 
 

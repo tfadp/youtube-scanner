@@ -4,7 +4,7 @@ import pytest
 from youtube_client import parse_duration
 from analyzer import (
     analyze_title, classify_themes,
-    is_event_recap, is_live_stream, is_political_news
+    is_event_recap, is_live_stream, is_political_news, is_soccer_content
 )
 
 
@@ -208,6 +208,58 @@ class TestIsPoliticalNews:
 
     def test_no_political_keywords(self):
         assert is_political_news("I Designed Uppestcase Letters") is False
+
+
+class TestIsSoccerContent:
+    """Tests for soccer/Premier League content detection"""
+
+    def test_soccer_category_channel(self):
+        assert is_soccer_content("soccer", ["reaction"]) is True
+
+    def test_soccer_theme_on_non_soccer_channel(self):
+        assert is_soccer_content("culture", ["soccer", "interview"]) is True
+
+    def test_basketball_not_soccer(self):
+        assert is_soccer_content("basketball", ["basketball", "athlete"]) is False
+
+    def test_football_not_soccer(self):
+        # American football should NOT be caught by soccer filter
+        assert is_soccer_content("football", ["football"]) is False
+
+    def test_no_soccer_themes(self):
+        assert is_soccer_content("gaming", ["reaction", "competition"]) is False
+
+
+class TestIsPoliticalNewsGeopolitical:
+    """Tests for expanded geopolitical keyword detection"""
+
+    def test_war_on_culture_channel(self):
+        assert is_political_news("War In the Middle East, Again", channel_category="culture") is True
+
+    def test_military_on_culture_channel(self):
+        assert is_political_news("US Military Strikes Expand", channel_category="culture") is True
+
+    def test_war_not_on_sports_channel(self):
+        # Sports channel talking about "war" metaphorically should pass
+        assert is_political_news("War on the Court: Playoff Preview", channel_category="basketball") is False
+
+    def test_warzone_not_filtered(self):
+        # "warzone" (gaming) should NOT match "war "
+        assert is_political_news("Warzone Tips and Tricks", channel_category="culture") is False
+
+    def test_bowling_strikes_not_filtered(self):
+        # "strikes" was too broad before — now uses "air strikes"
+        assert is_political_news("Best Bowling Strikes Ever", channel_category="culture") is False
+
+    def test_bomb_slang_not_filtered(self):
+        # "bomb" was too broad — now uses "bombing"/"bombed"
+        assert is_political_news("This Performance Was The Bomb", channel_category="culture") is False
+
+    def test_airstrikes_on_culture_channel(self):
+        assert is_political_news("Airstrikes Continue Overnight", channel_category="culture") is True
+
+    def test_sanctions_on_news_channel(self):
+        assert is_political_news("New Sanctions Hit Economy Hard", channel_category="news") is True
 
 
 if __name__ == "__main__":

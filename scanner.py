@@ -51,7 +51,7 @@ class Outperformer:
     title_patterns: list = field(default_factory=list)
     themes: list = field(default_factory=list)
     is_noise: bool = False          # True if this should be excluded from insights
-    noise_type: str = ""            # Why excluded: "event_recap", "live_stream", "political_news"
+    noise_type: str = ""            # Why excluded: "event_recap", "live_stream", "political_news", "soccer_content", "not_relevant"
     summary: str = ""               # AI-generated summary of video content + channel context
 
 
@@ -126,7 +126,8 @@ def find_outperformers(
     # Import here to avoid circular imports
     from analyzer import (
         analyze_title, classify_themes,
-        is_event_recap, is_live_stream, is_political_news, is_not_relevant
+        is_event_recap, is_live_stream, is_political_news,
+        is_soccer_content, is_not_relevant
     )
 
     outperformers = []
@@ -222,6 +223,8 @@ def find_outperformers(
                     noise_type = "live_stream"
                 elif is_political_news(video.title, channel.category):
                     noise_type = "political_news"
+                elif is_soccer_content(channel.category, themes):
+                    noise_type = "soccer_content"
                 elif is_not_relevant(channel.category, patterns, themes):
                     noise_type = "not_relevant"
 

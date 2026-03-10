@@ -1,9 +1,13 @@
 """Configuration and thresholds for YouTube Outperformance Scanner"""
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# All paths resolve from this root, regardless of where the script is invoked
+PROJECT_ROOT = Path(__file__).parent
+
+load_dotenv(PROJECT_ROOT / ".env")
 
 # API Keys
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
@@ -38,10 +42,13 @@ MAX_RESULTS_IN_REPORT = 25   # Top N outperformers to show
 # Batching (for large channel lists)
 BATCH_SIZE = 3000            # Channels per batch (fits in 10k quota)
 
-# File paths (relative to project root)
-CHANNELS_FILE = "channels.json"
-HISTORY_FILE = "history.json"
-BATCH_STATE_FILE = "batch_state.json"
+# File paths (resolved from PROJECT_ROOT)
+CHANNELS_FILE = PROJECT_ROOT / "channels.json"
+HISTORY_FILE = PROJECT_ROOT / "history.json"
+HISTORY_DB_FILE = PROJECT_ROOT / "history.db"
+BATCH_STATE_FILE = PROJECT_ROOT / "batch_state.json"
+OUTPUT_DIR = PROJECT_ROOT / "output"
+SCAN_RESULTS_FILE = PROJECT_ROOT / "output" / "last_scan.json"
 
 # Email settings (Resend)
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"

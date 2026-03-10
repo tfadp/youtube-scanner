@@ -6,6 +6,8 @@ Mobile-optimized HTML with inline styles for Gmail/iPhone.
 import requests
 from datetime import datetime
 
+from history_db import get_pattern_trends, get_tier_breakdown
+
 
 def send_report_email(
     to_email: str,
@@ -219,6 +221,12 @@ def format_email_report(outperformers: list, batch_info: str = "", mid_performer
         for op in mid_performers[:10]:
             html_parts.append(format_video_card_html(op, "#4a6fa5"))
 
+    # Trends section (only if we have historical data)
+    html_parts.append(_format_trends_html())
+
+    # Tier breakdown section
+    html_parts.append(_format_tiers_html())
+
     html_parts.append("""
                             <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 32px; border-top: 1px solid #eee;">
                                 <tr>
@@ -324,5 +332,94 @@ def format_video_card_html(op, border_color: str) -> str:
                                         {themes_html}
                                     </td>
                                 </tr>
+                            </table>
+"""
+
+
+def _format_trends_html() -> str:
+    """Build HTML for pattern/theme trend section. Returns empty string if no data."""
+    try:
+        trends = get_pattern_trends(weeks=4)
+    except Exception:
+        return ""
+
+    if trends.get('weeks_analyzed', 0) < 2:
+        return ""
+
+    # Pick top movers (rising or falling, sorted by absolute % change)
+    all_trends = []
+    for name, info in trends.get('theme_trends', {}).items():
+        if info['direction'] != 'stable':
+            all_trends.append((name, 'theme', info))
+    for name, info in trends.get('pattern_trends', {}).items():
+        if info['direction'] != 'stable':
+            all_trends.append((name, 'pattern', info))
+
+    all_trends.sort(key=lambda x: abs(x[2]['pct_change']), reverse=True)
+    top_movers = all_trends[:6]
+
+    if not top_movers:
+        return ""
+
+    rows_html = ""
+    for name, kind, info in top_movers:
+        arrow = "📈" if info['direction'] == 'rising' else "📉"
+        color = "#276749" if info['direction'] == 'rising' else "#c53030"
+        sign = "+" if info['pct_change'] > 0 else ""
+        rows_html += f"""
+                                <tr>
+                                    <td style="padding: 6px 0; font-size: 14px; color: #333;">{arrow} {name}</td>
+                                    <td style="padding: 6px 0; font-size: 14px; color: {color}; text-align: right; font-weight: 600;">{sign}{info['pct_change']:.0f}%</td>
+                                </tr>"""
+
+    return f"""
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 24px;">
+                                <tr>
+                                    <td colspan="2" style="padding: 0 0 12px 0;">
+                                        <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a;">📊 Trend Lines</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #999;">Based on {trends['weeks_analyzed']} weeks of data ({trends.get('recent_videos', 0)} recent vs {trends.get('prior_videos', 0)} prior videos)</p>
+                                    </td>
+                                </tr>
+                                {rows_html}
+                            </table>
+"""
+
+
+def _format_tiers_html() -> str:
+    """Build HTML for subscriber tier breakdown. Returns empty string if no data."""
+    try:
+        tiers = get_tier_breakdown()
+    except Exception:
+        return ""
+
+    # Only show if we have data in at least 2 tiers
+    active_tiers = {k: v for k, v in tiers.items() if v['total_videos'] > 0}
+    if len(active_tiers) < 2:
+        return ""
+
+    rows_html = ""
+    tier_labels = {'emerging': '🌱 Emerging', 'mid': '📊 Mid-size', 'large': '🏆 Large'}
+
+    for tier_name, data in active_tiers.items():
+        label = tier_labels.get(tier_name, tier_name)
+        top_pattern = next(iter(data['top_patterns']), 'none') if data['top_patterns'] else 'none'
+        top_theme = next(iter(data['top_themes']), 'none') if data['top_themes'] else 'none'
+        rows_html += f"""
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                        <p style="margin: 0; font-size: 14px; font-weight: 600; color: #333;">{label} <span style="font-weight: 400; color: #999;">({data['range']})</span></p>
+                                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #666;">{data['total_videos']} videos · avg velocity {data['avg_velocity']:.2f} · top: {top_pattern}, {top_theme}</p>
+                                    </td>
+                                </tr>"""
+
+    return f"""
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 24px;">
+                                <tr>
+                                    <td style="padding: 0 0 12px 0;">
+                                        <p style="margin: 0; font-size: 18px; font-weight: 600; color: #1a1a1a;">📏 By Channel Size</p>
+                                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #999;">What works at different subscriber tiers</p>
+                                    </td>
+                                </tr>
+                                {rows_html}
                             </table>
 """

@@ -340,7 +340,8 @@ def _format_trends_html() -> str:
     """Build HTML for pattern/theme trend section. Returns empty string if no data."""
     try:
         trends = get_pattern_trends(weeks=4)
-    except Exception:
+    except Exception as e:
+        print(f"⚠ Trends section skipped: {e}")
         return ""
 
     if trends.get('weeks_analyzed', 0) < 2:
@@ -389,7 +390,8 @@ def _format_tiers_html() -> str:
     """Build HTML for subscriber tier breakdown. Returns empty string if no data."""
     try:
         tiers = get_tier_breakdown()
-    except Exception:
+    except Exception as e:
+        print(f"⚠ Tiers section skipped: {e}")
         return ""
 
     # Only show if we have data in at least 2 tiers

@@ -32,6 +32,7 @@ class Channel:
     name: str
     subscribers: int
     category: str  # "competitor", "athlete", "culture", "emerging", "media", "gaming"
+    about: str = ""  # Channel description from YouTube "About" page
 ```
 
 ### Video (dataclass in scanner.py)

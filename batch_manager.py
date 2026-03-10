@@ -4,7 +4,6 @@ Tracks which batch to scan next and rotates through all channels.
 """
 
 import json
-from pathlib import Path
 from datetime import datetime
 
 from config import BATCH_SIZE, CHANNELS_FILE, BATCH_STATE_FILE

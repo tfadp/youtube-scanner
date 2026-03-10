@@ -21,7 +21,6 @@ from config import (
     MAX_RESULTS_IN_REPORT,
     MIN_VIDEO_AGE_HOURS,
     MAX_VIDEO_AGE_HOURS,
-    BATCH_SIZE,
     CHANNELS_FILE,
     OUTPUT_DIR,
     SCAN_RESULTS_FILE,
@@ -39,8 +38,7 @@ from batch_manager import (
     get_batch_channels,
     advance_batch,
     reset_batch,
-    print_batch_status,
-    load_batch_state
+    print_batch_status
 )
 from email_sender import send_report_email, format_email_report
 from history_db import add_outperformers

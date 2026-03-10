@@ -47,3 +47,11 @@ You become a Strict Auditor and run a checklist:
 
 ## 7) Non-Negotiables
 - All code reviews must follow the checklist in .claude/REVIEW_RULES.md
+
+## 8) Import Pattern for Testability
+- For any config value that tests might need to override, use `import config as _config` and reference `_config.VALUE` at runtime (not `from config import VALUE` which captures at import time).
+- When adding fields to dataclasses, update SPECS.md in the same change.
+
+## 9) Keyword Filter Safety
+- Never use common English words as noise filter keywords (e.g., "strikes", "bomb", "war").
+- Always use specific compound phrases ("air strikes", "bombing", "war ") and test against false positives.

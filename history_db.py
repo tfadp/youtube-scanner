@@ -8,7 +8,6 @@ automatically on first run.
 
 import json
 import sqlite3
-from pathlib import Path
 from datetime import datetime
 from collections import Counter
 
@@ -215,12 +214,9 @@ def add_outperformers(outperformers: list) -> int:
 
     new_count = 0
     for op in outperformers:
-        scanned_at = datetime.now().isoformat()
-        try:
-            dt = datetime.fromisoformat(scanned_at)
-            scan_week = f"{dt.isocalendar()[0]}-W{dt.isocalendar()[1]:02d}"
-        except (ValueError, TypeError):
-            scan_week = ""
+        now = datetime.now()
+        scanned_at = now.isoformat()
+        scan_week = f"{now.isocalendar()[0]}-W{now.isocalendar()[1]:02d}"
 
         try:
             conn.execute("""

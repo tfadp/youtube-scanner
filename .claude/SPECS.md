@@ -66,7 +66,7 @@ class Outperformer:
     title_patterns: list = []
     themes: list = []
     is_noise: bool = False          # True if filtered (recap, live, political, soccer, not_relevant)
-    noise_type: str = ""            # "event_recap", "live_stream", "political_news", "soccer_content", "not_relevant"
+    noise_type: str = ""            # "event_recap", "live_stream", "political_news"
     summary: str = ""               # AI-generated summary
 ```
 
@@ -129,7 +129,9 @@ RULE: Any schema change requires before/after + impact + verification command + 
 4. **Deduplication**: history.db dedupes by video_id (PRIMARY KEY)
 5. **Velocity Formula**: `velocity_score = ratio / (age_hours / 24)`
 6. **API Quota**: BATCH_SIZE=3000 fits in 10k daily quota
-7. **Sports Categories**: `{"athlete", "sports", "basketball", "football", "soccer", "training"}`
+7. **Sports Categories** (ratio threshold): `{"athlete", "sports", "basketball", "football", "training"}`
+8. **Relevant Categories** (scanner filter): `{"athlete", "sports", "basketball", "football", "training", "combat", "fitness", "highlights"}`
+9. **Weekly Digest**: Scans run 3x/week with `--scan-only`. Weekly digest runs with `--weekly-digest`. No soccer or culture channels scanned.
 
 RULE: Treat invariants like law.
 
@@ -150,3 +152,8 @@ RULE: Treat invariants like law.
 - [2026-03-09]: Trend analysis added (get_pattern_trends) — compares recent vs prior weeks.
 - [2026-03-09]: Subscriber tier breakdown added (get_tier_breakdown) — emerging/mid/large.
 - [2026-03-09]: Integration tests added (test_integration.py, 28 tests).
+- [2026-03-20]: US sports focus — added RELEVANT_CATEGORIES filter, removed soccer from SPORTS_CATEGORIES, scanner skips non-relevant channels entirely.
+- [2026-03-20]: Noise filter chain simplified — soccer_content and not_relevant filters removed (handled by category filter upstream).
+- [2026-03-20]: Weekly intelligence digest added (weekly_digest.py). Analyzes patterns, title formulas, emerging creators, per-sport breakdowns.
+- [2026-03-20]: Weekly digest email format added (format_weekly_digest_email). Mobile-optimized HTML.
+- [2026-03-20]: --weekly-digest CLI flag added. Intended workflow: scan 3x/week with --scan-only, digest 1x/week with --weekly-digest.

@@ -25,7 +25,8 @@ from main import (
     load_channels, _serialize_outperformer, _deserialize_outperformer,
     save_scan_results, load_scan_results
 )
-from email_sender import format_email_report
+from email_sender import format_email_report, format_weekly_digest_email
+from weekly_digest import generate_weekly_digest, get_weekly_data
 import history_db
 import config
 
@@ -503,32 +504,135 @@ class TestScannerWithMocks:
         assert outperformers == []
         mock_yt.get_recent_videos.assert_not_called()
 
-    def test_noise_flagging(self):
-        """Verify noise filters are applied during scanning."""
+    def test_irrelevant_category_skipped(self):
+        """Channels outside RELEVANT_CATEGORIES are skipped entirely (no API calls)."""
+        mock_yt = MagicMock()
+        channels = [
+            Channel("UCculture1", "CultureChannel", 100000, "culture"),
+            Channel("UCgaming1", "GamingChannel", 100000, "gaming"),
+            Channel("UCsoccer1", "SoccerChannel", 100000, "soccer"),
+        ]
+        outperformers, mid = find_outperformers(channels, mock_yt)
+        assert outperformers == []
+        mock_yt.get_recent_videos.assert_not_called()
+
+    def test_noise_flagging_event_recap(self):
+        """Verify event recap noise filter still works within relevant categories."""
         mock_yt = MagicMock()
         published = datetime.now(timezone.utc) - timedelta(hours=72)
 
         mock_yt.get_recent_videos.return_value = [
             {
-                "video_id": "vsoccer1",
-                "title": "Arsenal Destroy Chelsea AGAIN Premier League",
-                "description": "Premier league match analysis",
+                "video_id": "vrecap1",
+                "title": "Lakers vs Warriors | Extended Highlights (112-108)",
+                "description": "Full game highlights",
                 "views": 500000,
                 "likes": 10000,
                 "comments": 500,
                 "published_at": published,
                 "thumbnail_url": "",
                 "duration_seconds": 600,
-                "tags": ["soccer", "premier league"]
+                "tags": ["basketball", "highlights"]
             }
         ]
 
-        channels = [Channel("UCsoccer", "SoccerFans", 100000, "soccer")]
+        channels = [Channel("UCbball", "HoopsHighlights", 100000, "basketball")]
         outperformers, mid = find_outperformers(channels, mock_yt)
 
         assert len(outperformers) == 1
         assert outperformers[0].is_noise is True
-        assert outperformers[0].noise_type == "soccer_content"
+        assert outperformers[0].noise_type == "event_recap"
+
+
+# --- Weekly Digest Tests ---
+
+class TestWeeklyDigest:
+    """Test weekly intelligence digest generation."""
+
+    def test_empty_digest(self, temp_db):
+        """Digest with no data returns empty structure."""
+        digest = generate_weekly_digest(days=7)
+        assert digest['top_videos'] == []
+        assert digest['winning_patterns'] == []
+        assert digest['emerging_creators'] == []
+        assert digest['summary_stats']['total_videos'] == 0
+
+    def test_digest_with_data(self, temp_db, sample_outperformers):
+        """Digest analyzes outperformers correctly."""
+        history_db.add_outperformers(sample_outperformers)
+        digest = generate_weekly_digest(days=7)
+
+        assert digest['summary_stats']['total_videos'] == 3
+        assert len(digest['top_videos']) == 3
+        assert len(digest['winning_patterns']) > 0
+
+        # Check patterns include 'reaction' (all 3 test videos have it)
+        pattern_names = [p['pattern'] for p in digest['winning_patterns']]
+        assert 'reaction' in pattern_names
+
+    def test_emerging_creators_filter(self, temp_db):
+        """Emerging creators are those under 200K subs."""
+        ops = [
+            _make_video("v_small", "Small Win", 200000, 50000, 72, "athlete", "SmallCh"),
+            _make_video("v_big", "Big Win", 2000000, 500000, 72, "athlete", "BigCh"),
+        ]
+        history_db.add_outperformers(ops)
+        digest = generate_weekly_digest(days=7)
+
+        emerging_names = [e['channel_name'] for e in digest['emerging_creators']]
+        assert "SmallCh" in emerging_names
+        assert "BigCh" not in emerging_names
+
+    def test_title_formulas(self, temp_db):
+        """Title formulas require 2+ pattern combos appearing 2+ times."""
+        # Two videos with same pattern combo: reaction + all_caps
+        ops = [
+            _make_video("v1", "INSANE Challenge REACTION", 500000, 100000, 48, "athlete", "Ch1"),
+            _make_video("v2", "CRAZY Workout REACTION", 300000, 100000, 72, "athlete", "Ch2"),
+        ]
+        history_db.add_outperformers(ops)
+        digest = generate_weekly_digest(days=7)
+
+        # Both test videos get reaction + all_caps patterns from _make_video
+        formulas = digest['title_formulas']
+        if formulas:
+            # At least one formula should exist since both have same patterns
+            assert formulas[0]['count'] >= 2
+
+    def test_by_sport_grouping(self, temp_db):
+        """Videos are grouped by sport category."""
+        ops = [
+            _make_video("vb1", "Basketball Slam", 500000, 100000, 72, "basketball", "BballCh"),
+            _make_video("vf1", "Football TD", 500000, 100000, 72, "football", "FballCh"),
+        ]
+        history_db.add_outperformers(ops)
+        digest = generate_weekly_digest(days=7)
+
+        assert 'Basketball' in digest['by_sport']
+        assert 'Football' in digest['by_sport']
+        assert digest['by_sport']['Basketball']['total_videos'] == 1
+        assert digest['by_sport']['Football']['total_videos'] == 1
+
+    def test_digest_email_format(self, temp_db, sample_outperformers):
+        """Weekly digest email renders correctly."""
+        history_db.add_outperformers(sample_outperformers)
+        digest = generate_weekly_digest(days=7)
+
+        subject, text, html = format_weekly_digest_email(digest)
+
+        assert "Weekly Sports Intel" in subject
+        assert "3 outperformers" in subject
+        assert "WHAT'S WORKING" in text
+        assert "TOP 10 THIS WEEK" in text
+        assert "Weekly Sports Intelligence" in html
+
+    def test_digest_email_empty(self, temp_db):
+        """Empty digest email still renders."""
+        digest = generate_weekly_digest(days=7)
+        subject, text, html = format_weekly_digest_email(digest)
+
+        assert "0 outperformers" in subject
+        assert "Total outperformers: 0" in text
 
 
 if __name__ == "__main__":

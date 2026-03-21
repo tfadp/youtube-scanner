@@ -8,7 +8,7 @@ from config import (
     MIN_RATIO, MIN_RATIO_SPORTS, MIN_RATIO_MID, MIN_VIEWS, VIDEOS_PER_CHANNEL,
     MIN_VIDEO_AGE_HOURS, MAX_VIDEO_AGE_HOURS,
     SIGNAL_WINDOW_HOURS, VELOCITY_TREND_JACKER, VELOCITY_AUTHORITY,
-    MIN_VIDEO_DURATION, SPORTS_CATEGORIES
+    MIN_VIDEO_DURATION, SPORTS_CATEGORIES, RELEVANT_CATEGORIES
 )
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ class Outperformer:
     title_patterns: list = field(default_factory=list)
     themes: list = field(default_factory=list)
     is_noise: bool = False          # True if this should be excluded from insights
-    noise_type: str = ""            # Why excluded: "event_recap", "live_stream", "political_news", "soccer_content", "not_relevant"
+    noise_type: str = ""            # Why excluded: "event_recap", "live_stream", "political_news"
     summary: str = ""               # AI-generated summary of video content + channel context
 
 
@@ -126,15 +126,20 @@ def find_outperformers(
     # Import here to avoid circular imports
     from analyzer import (
         analyze_title, classify_themes,
-        is_event_recap, is_live_stream, is_political_news,
-        is_soccer_content, is_not_relevant
+        is_event_recap, is_live_stream, is_political_news
     )
 
     outperformers = []
     mid_performers = []
     total_channels = len(channels)
 
+    skipped_categories = 0
     for i, channel in enumerate(channels, 1):
+        # Skip channels outside relevant categories (saves API quota)
+        if channel.category.lower() not in RELEVANT_CATEGORIES:
+            skipped_categories += 1
+            continue
+
         print(f"  Scanning [{i}/{total_channels}]: {channel.name}")
 
         # Skip channels with hidden/zero subscribers
@@ -216,6 +221,7 @@ def find_outperformers(
                 )
 
                 # Check noise filters (content that doesn't provide insights)
+                # Soccer/culture/gaming already excluded by RELEVANT_CATEGORIES
                 noise_type = ""
                 if is_event_recap(video.title, channel.category):
                     noise_type = "event_recap"
@@ -223,10 +229,6 @@ def find_outperformers(
                     noise_type = "live_stream"
                 elif is_political_news(video.title, channel.category):
                     noise_type = "political_news"
-                elif is_soccer_content(channel.category, themes):
-                    noise_type = "soccer_content"
-                elif is_not_relevant(channel.category, patterns, themes):
-                    noise_type = "not_relevant"
 
                 outperformer = Outperformer(
                     video=video,
@@ -282,6 +284,9 @@ def find_outperformers(
                     title_patterns=patterns,
                     themes=themes
                 ))
+
+    if skipped_categories > 0:
+        print(f"  ⏭ Skipped {skipped_categories} channels outside relevant categories")
 
     # Sort by velocity score descending (normalizes for time)
     outperformers.sort(key=lambda x: x.velocity_score, reverse=True)

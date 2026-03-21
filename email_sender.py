@@ -386,6 +386,220 @@ def _format_trends_html() -> str:
 """
 
 
+def format_weekly_digest_email(digest: dict) -> tuple[str, str, str]:
+    """
+    Format the weekly intelligence digest into email subject, text, and HTML.
+    Mobile-optimized. Focused on actionable sports content intelligence.
+
+    Returns (subject, text_body, html_body)
+    """
+    now = datetime.now()
+    stats = digest.get('summary_stats', {})
+    total = stats.get('total_videos', 0)
+
+    subject = f"Weekly Sports Intel [{now.strftime('%b %d')}]: {total} outperformers"
+
+    # ===== Plain text =====
+    text_lines = []
+    text_lines.append("=" * 55)
+    text_lines.append("WEEKLY SPORTS INTELLIGENCE DIGEST")
+    text_lines.append("=" * 55)
+    text_lines.append(f"Week of {now.strftime('%B %d, %Y')}")
+    text_lines.append(f"Total outperformers: {total}")
+    text_lines.append("")
+
+    # Winning patterns
+    patterns = digest.get('winning_patterns', [])
+    if patterns:
+        text_lines.append("-" * 55)
+        text_lines.append("WHAT'S WORKING (Title Patterns)")
+        text_lines.append("-" * 55)
+        for p in patterns[:8]:
+            text_lines.append(
+                f"  {p['pattern']}: {p['count']} videos, "
+                f"avg {p['avg_ratio']:.1f}x ratio, {p['avg_velocity']:.1f} velocity"
+            )
+        text_lines.append("")
+
+    # Title formulas
+    formulas = digest.get('title_formulas', [])
+    if formulas:
+        text_lines.append("-" * 55)
+        text_lines.append("TITLE FORMULAS THAT WORKED")
+        text_lines.append("-" * 55)
+        for f in formulas[:5]:
+            text_lines.append(f"  {f['formula']} ({f['count']}x, avg {f['avg_ratio']:.1f}x)")
+            for title in f['example_titles'][:2]:
+                text_lines.append(f"    e.g. \"{title[:60]}\"")
+        text_lines.append("")
+
+    # Emerging creators
+    emerging = digest.get('emerging_creators', [])
+    if emerging:
+        text_lines.append("-" * 55)
+        text_lines.append("EMERGING CREATORS TO WATCH (<200K subs)")
+        text_lines.append("-" * 55)
+        for e in emerging[:5]:
+            text_lines.append(
+                f"  {e['channel_name']} ({e['subscribers']:,} subs, {e['channel_category']})"
+            )
+            text_lines.append(f"    \"{e['best_title'][:60]}\" — {e['best_ratio']:.1f}x")
+            text_lines.append(f"    {e['url']}")
+        text_lines.append("")
+
+    # Top videos
+    top = digest.get('top_videos', [])
+    if top:
+        text_lines.append("-" * 55)
+        text_lines.append("TOP 10 THIS WEEK")
+        text_lines.append("-" * 55)
+        for i, v in enumerate(top[:10], 1):
+            text_lines.append(f"  #{i} {v['title'][:55]}")
+            text_lines.append(
+                f"      {v['channel_name']} | {v['views']:,} views | "
+                f"{v['ratio']:.1f}x | {v['url']}"
+            )
+        text_lines.append("")
+
+    # By sport
+    by_sport = digest.get('by_sport', {})
+    if by_sport:
+        text_lines.append("-" * 55)
+        text_lines.append("BY SPORT")
+        text_lines.append("-" * 55)
+        for sport, data in by_sport.items():
+            text_lines.append(f"\n  {sport} ({data['total_videos']} videos)")
+            if data['top_patterns']:
+                text_lines.append(f"    Top patterns: {', '.join(list(data['top_patterns'].keys())[:3])}")
+            for v in data['top_videos'][:3]:
+                text_lines.append(f"    - \"{v['title'][:50]}\" ({v['ratio']:.1f}x)")
+
+    text_lines.append("\n" + "=" * 55)
+    text_body = "\n".join(text_lines)
+
+    # ===== HTML (mobile-optimized, inline styles) =====
+    html_parts = []
+    html_parts.append(f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f5f5f5;">
+<tr><td style="padding:20px 10px;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+<tr><td style="padding:24px 20px;">
+
+<h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1a1a1a;">Weekly Sports Intelligence</h1>
+<p style="margin:0 0 20px;font-size:15px;color:#666;">{now.strftime('%B %d, %Y')} &bull; {total} outperformers found</p>
+""")
+
+    # --- Winning Patterns section ---
+    if patterns:
+        html_parts.append("""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f0f7ff;border-radius:12px;margin-bottom:20px;">
+<tr><td style="padding:16px 20px;">
+<p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#1a1a1a;">What's Working</p>
+""")
+        for p in patterns[:6]:
+            bar_width = min(100, int(p['score'] / max(patterns[0]['score'], 1) * 100))
+            html_parts.append(f"""
+<p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#333;">{p['pattern'].replace('_', ' ').title()}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:10px;">
+<tr>
+<td style="width:{bar_width}%;height:6px;background:#1a73e8;border-radius:3px;"></td>
+<td style="height:6px;background:#e8e8e8;border-radius:0 3px 3px 0;"></td>
+</tr>
+</table>
+<p style="margin:-6px 0 10px;font-size:12px;color:#666;">{p['count']} videos &bull; avg {p['avg_ratio']:.1f}x ratio &bull; {p['avg_velocity']:.1f} velocity</p>
+""")
+        html_parts.append("</td></tr></table>")
+
+    # --- Title Formulas section ---
+    if formulas:
+        html_parts.append("""
+<p style="margin:20px 0 12px;font-size:17px;font-weight:700;color:#1a1a1a;">Title Formulas That Worked</p>
+""")
+        for f in formulas[:5]:
+            examples_html = "".join(
+                f'<p style="margin:4px 0 0 12px;font-size:13px;color:#555;font-style:italic;">"{t[:55]}"</p>'
+                for t in f['example_titles'][:2]
+            )
+            html_parts.append(f"""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-left:3px solid #ffd700;background:#fffdf0;border-radius:0 8px 8px 0;margin-bottom:10px;">
+<tr><td style="padding:12px 16px;">
+<p style="margin:0;font-size:15px;font-weight:600;color:#333;">{f['formula'].replace('_', ' ')}</p>
+<p style="margin:4px 0 0;font-size:12px;color:#888;">{f['count']} videos &bull; avg {f['avg_ratio']:.1f}x ratio</p>
+{examples_html}
+</td></tr></table>
+""")
+
+    # --- Emerging Creators section ---
+    if emerging:
+        html_parts.append("""
+<p style="margin:20px 0 12px;font-size:17px;font-weight:700;color:#1a1a1a;">Emerging Creators (&lt;200K subs)</p>
+<p style="margin:0 0 12px;font-size:13px;color:#888;">Smaller channels punching above their weight this week</p>
+""")
+        for e in emerging[:5]:
+            html_parts.append(f"""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-left:3px solid #28a745;background:#f0fff4;border-radius:0 8px 8px 0;margin-bottom:10px;">
+<tr><td style="padding:12px 16px;">
+<p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#333;">{e['channel_name']}</p>
+<p style="margin:0 0 6px;font-size:12px;color:#888;">{e['subscribers']:,} subs &bull; {e['channel_category']}</p>
+<a href="{e['url']}" style="font-size:14px;color:#1a73e8;text-decoration:none;">{e['best_title'][:55]}</a>
+<p style="margin:4px 0 0;font-size:12px;color:#666;">{e['best_ratio']:.1f}x ratio &bull; Patterns: {', '.join(e['patterns'][:3]) if e['patterns'] else 'none'}</p>
+</td></tr></table>
+""")
+
+    # --- Top Videos section ---
+    if top:
+        html_parts.append("""
+<p style="margin:20px 0 12px;font-size:17px;font-weight:700;color:#1a1a1a;">Top 10 This Week</p>
+""")
+        for i, v in enumerate(top[:10], 1):
+            class_emoji = {"trend_jacker": "🔥", "authority_builder": "👑"}.get(v['classification'], "⬆️")
+            html_parts.append(f"""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-bottom:1px solid #eee;margin-bottom:8px;">
+<tr><td style="padding:10px 0;">
+<p style="margin:0 0 4px;font-size:13px;color:#999;">{class_emoji} #{i} &bull; {v['channel_name']} ({v['channel_category']})</p>
+<a href="{v['url']}" style="font-size:15px;font-weight:600;color:#1a73e8;text-decoration:none;line-height:1.4;">{v['title'][:65]}</a>
+<p style="margin:4px 0 0;font-size:12px;color:#666;">{v['views']:,} views &bull; {v['ratio']:.1f}x &bull; {v['subscribers']:,} subs</p>
+</td></tr></table>
+""")
+
+    # --- By Sport section ---
+    if by_sport:
+        html_parts.append("""
+<p style="margin:20px 0 12px;font-size:17px;font-weight:700;color:#1a1a1a;">By Sport</p>
+""")
+        for sport, data in by_sport.items():
+            top_pats = ', '.join(list(data['top_patterns'].keys())[:3]) if data['top_patterns'] else 'none'
+            html_parts.append(f"""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f8f9fa;border-radius:8px;margin-bottom:10px;">
+<tr><td style="padding:12px 16px;">
+<p style="margin:0 0 4px;font-size:15px;font-weight:600;color:#333;">{sport}</p>
+<p style="margin:0 0 6px;font-size:12px;color:#888;">{data['total_videos']} videos &bull; Top patterns: {top_pats}</p>
+""")
+            for v in data['top_videos'][:3]:
+                html_parts.append(f"""<p style="margin:0 0 4px;font-size:13px;color:#555;">• <a href="{v['url']}" style="color:#1a73e8;text-decoration:none;">{v['title'][:50]}</a> ({v['ratio']:.1f}x)</p>""")
+            html_parts.append("</td></tr></table>")
+
+    # Footer
+    html_parts.append("""
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin-top:24px;border-top:1px solid #eee;">
+<tr><td style="padding-top:12px;">
+<p style="margin:0;font-size:12px;color:#999;text-align:center;">YouTube Sports Intelligence &bull; Generated automatically</p>
+</td></tr></table>
+
+</td></tr></table>
+</td></tr></table>
+</body></html>""")
+
+    html_body = "\n".join(html_parts)
+    return subject, text_body, html_body
+
+
 def _format_tiers_html() -> str:
     """Build HTML for subscriber tier breakdown. Returns empty string if no data."""
     try:

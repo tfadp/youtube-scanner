@@ -27,7 +27,8 @@ from config import (
     EMAIL_ENABLED,
     EMAIL_TO,
     RESEND_API_KEY,
-    EMAIL_FROM
+    EMAIL_FROM,
+    RELEVANT_CATEGORIES
 )
 from youtube_client import YouTubeClient
 from scanner import find_outperformers, Channel, Video, Outperformer
@@ -40,8 +41,9 @@ from batch_manager import (
     reset_batch,
     print_batch_status
 )
-from email_sender import send_report_email, format_email_report
+from email_sender import send_report_email, format_email_report, format_weekly_digest_email
 from history_db import add_outperformers
+from weekly_digest import generate_weekly_digest
 
 
 # --- Serialization helpers for intermediate results ---
@@ -369,6 +371,12 @@ def stage_scan(args, batch_info_out: list) -> tuple[list, list, str]:
         print(f"\nBatch {current_batch + 1} of {total_batches}")
         print(f"Scanning {len(channels)} of {total_channels} total channels")
 
+    # Filter to relevant categories BEFORE API calls (saves quota)
+    pre_filter = len(channels)
+    channels = [ch for ch in channels if ch.category.lower() in RELEVANT_CATEGORIES]
+    if pre_filter != len(channels):
+        print(f"Filtered to {len(channels)} relevant channels (skipped {pre_filter - len(channels)} non-sports)")
+
     print(f"Time window: {MIN_VIDEO_AGE_HOURS}-{MAX_VIDEO_AGE_HOURS} hours ({MIN_VIDEO_AGE_HOURS/24:.1f}-{MAX_VIDEO_AGE_HOURS/24:.1f} days)")
 
     yt = YouTubeClient(YOUTUBE_API_KEY)
@@ -460,6 +468,68 @@ def stage_deliver(outperformers: list, mid_performers: list, batch_info: str, id
             print("⚠ Failed to send email")
 
 
+# --- Weekly digest mode ---
+
+def _run_weekly_digest():
+    """
+    Generate and deliver the weekly intelligence digest.
+    Reads from history.db (accumulated from 3x/week scans).
+    No YouTube API calls needed — purely data analysis.
+    """
+    print("Weekly Sports Intelligence Digest")
+    print(f"Started: {datetime.now()}")
+    print("=" * 60)
+
+    print("\nAnalyzing this week's outperformers...")
+    digest = generate_weekly_digest(days=7)
+
+    stats = digest.get('summary_stats', {})
+    total = stats.get('total_videos', 0)
+
+    if total == 0:
+        print("No outperformers found in the last 7 days.")
+        print("Run scans first: python main.py --scan-only")
+        return
+
+    print(f"Found {total} outperformers across {len(digest.get('by_sport', {}))} sports")
+
+    # Print console summary
+    patterns = digest.get('winning_patterns', [])
+    if patterns:
+        print(f"\nTop patterns: {', '.join(p['pattern'] for p in patterns[:5])}")
+
+    emerging = digest.get('emerging_creators', [])
+    if emerging:
+        print(f"Emerging creators: {', '.join(e['channel_name'] for e in emerging[:5])}")
+
+    formulas = digest.get('title_formulas', [])
+    if formulas:
+        print(f"Title formulas: {', '.join(fm['formula'] for fm in formulas[:3])}")
+
+    # Send email
+    if EMAIL_ENABLED and EMAIL_TO and RESEND_API_KEY:
+        print("\nFormatting weekly digest email...")
+        subject, text_body, html_body = format_weekly_digest_email(digest)
+
+        print(f"Sending to {EMAIL_TO}...")
+        success = send_report_email(
+            to_email=EMAIL_TO,
+            subject=subject,
+            body=text_body,
+            resend_api_key=RESEND_API_KEY,
+            from_email=EMAIL_FROM,
+            html_body=html_body
+        )
+        if success:
+            print(f"✓ Weekly digest sent to {EMAIL_TO}")
+        else:
+            print("⚠ Failed to send email")
+    else:
+        print("\n⚠ Email not configured. Set EMAIL_ENABLED=true in .env")
+
+    print(f"\nCompleted: {datetime.now()}")
+
+
 # --- Main entry point ---
 
 def main():
@@ -471,6 +541,7 @@ def main():
     parser.add_argument("--scan-only", action="store_true", help="Run scan stage only (saves results for later)")
     parser.add_argument("--enrich-only", action="store_true", help="Run enrichment on last scan (no YouTube API)")
     parser.add_argument("--deliver-only", action="store_true", help="Run delivery on last scan (no API calls)")
+    parser.add_argument("--weekly-digest", action="store_true", help="Generate weekly intelligence digest from accumulated scan data")
     args = parser.parse_args()
 
     # Handle status/reset commands
@@ -481,6 +552,11 @@ def main():
     if args.reset:
         reset_batch()
         print("Batch counter reset to 0")
+        return
+
+    # Weekly digest mode — analyzes accumulated data, no scanning
+    if args.weekly_digest:
+        _run_weekly_digest()
         return
 
     print("YouTube Outperformance Scanner")

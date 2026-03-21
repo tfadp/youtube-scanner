@@ -19,8 +19,15 @@ MIN_RATIO_SPORTS = 0.75      # Lower bar for sports channels (large sub counts r
 MIN_RATIO_MID = 0.5          # Floor for mid-performer fallback (shown when no outperformers found)
 MIN_VIEWS = 10000            # Minimum views to consider
 
-# Sports categories (use lower ratio threshold)
-SPORTS_CATEGORIES = {"athlete", "sports", "basketball", "football", "soccer", "training"}
+# Sports categories (use lower ratio threshold) — US sports only, no soccer
+SPORTS_CATEGORIES = {"athlete", "sports", "basketball", "football", "training"}
+
+# Only scan channels in these categories (saves API quota, removes irrelevant noise)
+RELEVANT_CATEGORIES = {
+    "athlete", "sports", "basketball", "football", "training",
+    "combat", "fitness", "highlights"
+}
+
 VIDEOS_PER_CHANNEL = 5       # How many recent videos to check per channel
 MIN_VIDEO_DURATION = 180     # Minimum duration in seconds (excludes Shorts, which can be up to 3 min)
 
